@@ -80,5 +80,6 @@ class H(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print("Fleet dashboard on http://localhost:8000  (Ctrl+C to stop)")
-    ThreadingHTTPServer(("", 8000), H).serve_forever()
+    port = int(os.environ.get("PORT", 8000))
+    print(f"Fleet dashboard running on port {port}")
+    ThreadingHTTPServer(("0.0.0.0", port), H).serve_forever()
