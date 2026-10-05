@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FleetFlow · Decentralized Logistics Coordination</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="brand-mark">F</div>
+    <div><b>FleetFlow</b><span>Decentralized multi-agent logistics</span></div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab on" data-view="live">Live city</button>
+    <button class="tab" data-view="analytics">Coordination analytics</button>
+  </nav>
+  <div class="ctl">
+    <button id="bRun" class="primary">Start</button>
+    <button id="bStep">Step</button>
+    <select id="speed" aria-label="Simulation speed">
+      <option value="1100">Slow</option><option value="650" selected>Normal</option><option value="250">Fast</option>
+    </select>
+    <select id="scenario" aria-label="Scenario">
+      <option value="0">Scripted demo</option><option value="1">Random fleet</option>
+    </select>
+    <button id="bReset">Reset</button>
+    <button id="bFail" class="danger">Fail V3</button>
+    <button id="bAdd" class="accent">+ Task</button>
+  </div>
+</header>
+
+<div id="banner" class="banner" hidden></div>
+
+<main id="live" class="view">
+  <div class="left">
+    <section class="card mapcard">
+      <div class="map-head">
+        <div><b>City coordination view</b><span>Agents negotiate shared intersections in real time</span></div>
+        <div class="live-dot"><i></i><span id="tickLbl">LIVE</span></div>
+      </div>
+      <svg id="map" viewBox="0 0 300 300" aria-label="Fleet city map"></svg>
+      <div id="toasts" class="toasts" aria-live="polite"></div>
+      <div class="legend">
+        <span><i style="--c:#4D6EF7"></i>Moving</span><span><i style="--c:#F3B63F"></i>Negotiating</span>
+        <span><i style="--c:#F16B73"></i>Failed</span><span>□ Pickup</span><span>◆ Dropoff</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title"><div><h2>Agent communication</h2><small>Decentralized coordination events</small></div><span class="mini-badge">LIVE LOG</span></div>
+      <ol id="feed" class="feed"></ol>
+    </section>
+  </div>
+
+  <aside class="right">
+    <section class="card">
+      <div class="section-title"><div><h2>Fleet agents</h2><small>Availability · battery · link state</small></div></div>
+      <div id="fleet" class="fleet"></div>
+      <div id="selPanel"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title"><div><h2>Delivery tasks</h2><small>Contract-Net allocation</small></div><span class="mini-badge">AUCTION</span></div>
+      <div id="tasks" class="tasks"></div>
+    </section>
+
+    <section class="card controls-card">
+      <div class="section-title"><div><h2>Coordination controls</h2><small>Test live city conditions</small></div></div>
+      <div class="control-grid">
+        <label>Intersection<select id="intersection"><option>I1</option><option>I2</option><option>I3</option><option>I4</option></select></label>
+        <label>Traffic<select id="trafficLevel">
+          <option value=".15">Light · 15%</option><option value=".45" selected>Moderate · 45%</option>
+          <option value=".75">Heavy · 75%</option><option value=".92">Severe · 92%</option>
+        </select></label>
+      </div>
+      <div class="control-actions"><button id="bTraffic">Change traffic</button></div>
+      <div class="control-grid">
+        <label>Emergency agent<select id="overrideVehicle"><option>V1</option><option>V2</option><option>V3</option><option>V4</option><option>V5</option><option>V6</option></select></label>
+        <div class="action-label">Human intervention<span>Force GO at selected intersection</span></div>
+      </div>
+      <div class="control-actions"><button id="bOverride" class="danger-outline">Human GO override</button><button id="bComm">Vehicle comms</button></div>
+    </section>
+  </aside>
+</main>
+
+<main id="analytics" class="view" hidden>
+  <div id="metrics" class="metrics"></div>
+  <div class="two">
+    <section class="card"><div class="section-title"><div><h2>Deliveries completed</h2><small>Throughput over simulation time</small></div></div><svg id="ch1" class="chart" viewBox="0 0 400 140" preserveAspectRatio="none"></svg></section>
+    <section class="card"><div class="section-title"><div><h2>Average fleet battery</h2><small>Health of the distributed fleet</small></div></div><svg id="ch2" class="chart" viewBox="0 0 400 140" preserveAspectRatio="none"></svg></section>
+  </div>
+  <section class="card"><div class="section-title"><div><h2>Task allocation</h2><small>Vehicle bids, winners and self-healing re-auctions</small></div></div><div class="scroll"><table id="auctions"></table></div></section>
+  <section class="card"><div class="section-title"><div><h2>Coordination event stream</h2><small>Filter the decentralized decision history</small></div></div><div id="chips" class="chips"></div><ol id="fullLog" class="feed tall"></ol></section>
+</main>
+
+<dialog id="dlg">
+<form method="dialog" id="taskForm">
+  <div class="dialog-top"><div><h2>New delivery task</h2><p class="hint">The task is announced to the fleet and allocated to the best eligible bidder.</p></div></div>
+  <div class="row"><label>Pickup x<input name="px" type="number" min="0" max="300" required></label><label>Pickup y<input name="py" type="number" min="0" max="300" required></label></div>
+  <div class="row"><label>Dropoff x<input name="dx" type="number" min="0" max="300" required></label><label>Dropoff y<input name="dy" type="number" min="0" max="300" required></label></div>
+  <label>Priority<select name="pr"><option>emergency</option><option>high</option><option selected>normal</option><option>low</option></select></label>
+  <div class="row end"><button type="button" id="tfPick">Pick on map</button><button type="button" id="tfRand">Random route</button><button type="button" id="tfCancel">Cancel</button><button class="accent" value="ok">Create task</button></div>
+</form>
+</dialog>
+<script src="app.js"></script>
+</body>
+</html>
